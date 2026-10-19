@@ -1,0 +1,38 @@
+name: Build masterclass presentation
+
+on:
+  push:
+    branches:
+      - chatgpt-build-masterclass
+    paths:
+      - 'chatgpt_presentation/**'
+      - '.github/workflows/build-masterclass-presentation.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependency
+        run: python -m pip install --upgrade pip python-pptx
+
+      - name: Generate PowerPoint
+        run: python chatgpt_presentation/generate_masterclass.py
+
+      - name: Upload presentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: masterclass-russian-olympiad
+          path: chatgpt_presentation/masterclass_russian_olympiad_10_slides.pptx
+          if-no-files-found: error
+          retention-days: 1
