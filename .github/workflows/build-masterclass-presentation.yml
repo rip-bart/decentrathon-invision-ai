@@ -7,6 +7,12 @@ on:
     paths:
       - 'chatgpt_presentation/**'
       - '.github/workflows/build-masterclass-presentation.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'chatgpt_presentation/**'
+      - '.github/workflows/build-masterclass-presentation.yml'
   workflow_dispatch:
 
 jobs:
