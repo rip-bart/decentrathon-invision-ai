@@ -1,17 +1,11 @@
 name: Build masterclass presentation
 
 on:
-  push:
-    branches:
-      - chatgpt-build-masterclass
-    paths:
-      - 'chatgpt_presentation/**'
-      - '.github/workflows/build-masterclass-presentation.yml'
   pull_request:
     branches:
       - main
     paths:
-      - 'chatgpt_presentation/**'
+      - 'chatgpt_presentation/generate_masterclass.py'
       - '.github/workflows/build-masterclass-presentation.yml'
   workflow_dispatch:
 
@@ -19,10 +13,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
-      - name: Checkout
+      - name: Checkout build branch
         uses: actions/checkout@v4
+        with:
+          ref: chatgpt-build-masterclass
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -35,10 +31,22 @@ jobs:
       - name: Generate PowerPoint
         run: python chatgpt_presentation/generate_masterclass.py
 
-      - name: Upload presentation
+      - name: Upload presentation artifact
         uses: actions/upload-artifact@v4
         with:
           name: masterclass-russian-olympiad
           path: chatgpt_presentation/masterclass_russian_olympiad_10_slides.pptx
           if-no-files-found: error
           retention-days: 1
+
+      - name: Publish presentation to branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add chatgpt_presentation/masterclass_russian_olympiad_10_slides.pptx
+          if git diff --cached --quiet; then
+            echo "No changes to publish"
+          else
+            git commit -m "Add generated masterclass presentation [skip ci]"
+            git push origin HEAD:chatgpt-build-masterclass
+          fi
