@@ -31,13 +31,26 @@ jobs:
       - name: Generate PowerPoint
         run: python chatgpt_presentation/generate_masterclass.py
 
-      - name: Upload presentation artifact
+      - name: Prepare direct PowerPoint package
+        run: |
+          rm -rf chatgpt_presentation/pptx_package
+          mkdir -p chatgpt_presentation/pptx_package
+          python - <<'PY'
+          import zipfile
+          src = 'chatgpt_presentation/masterclass_russian_olympiad_10_slides.pptx'
+          dst = 'chatgpt_presentation/pptx_package'
+          with zipfile.ZipFile(src) as zf:
+              zf.extractall(dst)
+          PY
+
+      - name: Upload direct PowerPoint package
         uses: actions/upload-artifact@v4
         with:
-          name: masterclass-russian-olympiad
-          path: chatgpt_presentation/masterclass_russian_olympiad_10_slides.pptx
+          name: masterclass-direct-pptx
+          path: chatgpt_presentation/pptx_package/**
           if-no-files-found: error
           retention-days: 1
+          compression-level: 6
 
       - name: Publish presentation to branch
         run: |
@@ -47,6 +60,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to publish"
           else
-            git commit -m "Add generated masterclass presentation [skip ci]"
+            git commit -m "Update generated masterclass presentation [skip ci]"
             git push origin HEAD:chatgpt-build-masterclass
           fi
